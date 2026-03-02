@@ -1,5 +1,7 @@
 import { useEditorStore, type TabId } from '../store/useEditorStore'
 import { AdjustPanel } from './AdjustPanel'
+import { EffectsPanel } from './EffectsPanel'
+import { PresetsPanel } from './PresetsPanel'
 
 const tabs: { id: TabId; label: string }[] = [
   { id: 'adjust', label: 'Adjust' },
@@ -31,14 +33,13 @@ export function Sidebar() {
       </div>
 
       <div className="flex-1 min-h-0">
-        {activeTab === 'adjust' ? (
-          <AdjustPanel />
-        ) : (
+        {activeTab === 'adjust' && <AdjustPanel />}
+        {activeTab === 'effects' && <EffectsPanel />}
+        {activeTab === 'presets' && <PresetsPanel />}
+        {activeTab === 'ai' && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center px-6">
-              <div className="text-text-dim text-sm font-medium mb-1">
-                {tabs.find((t) => t.id === activeTab)?.label}
-              </div>
+              <div className="text-text-dim text-sm font-medium mb-1">AI</div>
               <div className="text-text-dim/50 text-xs">Coming soon</div>
             </div>
           </div>

@@ -24,7 +24,7 @@ const detailSliders: SliderConfig[] = [
 export function AdjustPanel() {
   const adjustments = useEditorStore((s) => s.adjustments)
   const setAdjustment = useEditorStore((s) => s.setAdjustment)
-  const resetAdjustments = useEditorStore((s) => s.resetAdjustments)
+  const resetAll = useEditorStore((s) => s.resetAll)
 
   return (
     <div className="flex flex-col h-full">
@@ -35,7 +35,7 @@ export function AdjustPanel() {
 
       <div className="shrink-0 p-4 border-t border-border">
         <button
-          onClick={resetAdjustments}
+          onClick={resetAll}
           className="w-full py-2 text-xs font-medium rounded border border-border text-text-dim hover:text-text hover:border-amber/40 transition-colors cursor-pointer"
         >
           Reset All

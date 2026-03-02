@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react'
 import { useEditorStore } from '../store/useEditorStore'
 import { applyTemperatureExposureSharpness } from '../lib/canvasEffects'
+import { applyEffects, hasActiveEffects } from '../lib/effects'
 
 export function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -8,6 +9,7 @@ export function Canvas() {
   const rafRef = useRef<number>(0)
   const image = useEditorStore((s) => s.image)
   const adjustments = useEditorStore((s) => s.adjustments)
+  const effects = useEditorStore((s) => s.effects)
 
   const render = useCallback(() => {
     // Cancel any pending frame to avoid stacking
@@ -63,8 +65,13 @@ export function Canvas() {
       if (temperature !== 0 || exposure !== 0 || sharpness !== 0) {
         applyTemperatureExposureSharpness(ctx, drawW, drawH, temperature, exposure, sharpness)
       }
+
+      // Apply effects (stacked on top of adjustments)
+      if (hasActiveEffects(effects)) {
+        applyEffects(ctx, drawW, drawH, effects)
+      }
     })
-  }, [image, adjustments])
+  }, [image, adjustments, effects])
 
   useEffect(() => {
     render()
