@@ -37,13 +37,48 @@ Glitchbox is a professional browser-based image editing tool built with React, T
   - Manual slider changes clear preset selection
 - Reset All button on all tabs resets both adjustments and effects
 
+### Step 3: AI tab (complete)
+
+- **AI tab** with Gemini 2.0 Flash integration for AI-powered image editing:
+  - Multiline text prompt for describing edits in plain English
+  - Model dropdown selector driven by `/src/config/models.ts` config array
+  - Sends current canvas state as base64 PNG + user prompt to Gemini API
+  - Writes returned AI-edited image back to canvas, resetting adjustments/effects
+  - Loading state: button shows "Processing..." and inputs disabled during API call
+  - Error state: red error message displayed below prompt on failure
+  - Disabled state: Apply button disabled when no image is loaded
+  - Keyboard shortcut: Cmd/Ctrl+Enter to apply
+- **Model configuration** (`/src/config/models.ts`):
+  - Array of `ModelConfig` objects: `{ id, name, provider, apiKeyLabel }`
+  - Adding a new model = adding one entry to the array
+  - Currently: Gemini 2.0 Flash (`gemini-2.0-flash-exp`)
+- **API service** (`/src/lib/ai/gemini.ts`):
+  - Pure async function using `@google/generative-ai` SDK
+  - Sends image + prompt with `responseModalities: ['IMAGE', 'TEXT']`
+  - Parses response for image part; falls back to text error message if no image returned
+
+## Environment setup
+
+To use the AI tab, you need a Gemini API key:
+
+1. Get an API key at https://aistudio.google.com/apikey
+2. Copy `.env.example` to `.env` in the project root
+3. Replace `your_gemini_api_key_here` with your actual key
+4. Restart the dev server (`npm run dev`)
+
+```
+VITE_GEMINI_API_KEY=your_actual_key_here
+```
+
+The `.env` file is gitignored and will not be committed.
+
 ## What's coming next
 
-- **AI tab**: AI-powered features (auto-enhance, background removal, style transfer)
 - Undo/redo history
 - Crop and rotate tools
 - Before/after comparison view
 - Layer support
+- Additional AI models (add entries to `/src/config/models.ts`)
 
 ## Known issues
 
@@ -52,3 +87,4 @@ Glitchbox is a professional browser-based image editing tool built with React, T
 - **No undo/redo**: Slider changes are immediate with no history stack.
 - **Export resolution**: Export uses display-scaled canvas dimensions, not original image resolution.
 - **Film grain is non-deterministic**: Grain pattern changes on each re-render since it uses Math.random(). A seeded PRNG would make it stable.
+- **AI sends display-scaled image**: The AI receives the canvas at display resolution, not original image resolution.
