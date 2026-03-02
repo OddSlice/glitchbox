@@ -39,7 +39,7 @@ Glitchbox is a professional browser-based image editing tool built with React, T
 
 ### Step 3: AI tab (complete)
 
-- **AI tab** with Gemini 2.0 Flash integration for AI-powered image editing:
+- **AI tab** with Gemini 3.1 Flash integration for AI-powered image editing:
   - Multiline text prompt for describing edits in plain English
   - Model dropdown selector driven by `/src/config/models.ts` config array
   - Sends current canvas state as base64 PNG + user prompt to Gemini API
@@ -51,10 +51,10 @@ Glitchbox is a professional browser-based image editing tool built with React, T
 - **Model configuration** (`/src/config/models.ts`):
   - Array of `ModelConfig` objects: `{ id, name, provider, apiKeyLabel }`
   - Adding a new model = adding one entry to the array
-  - Currently: Gemini 2.0 Flash (`gemini-2.0-flash-exp`)
+  - Currently: Gemini 3.1 Flash (`gemini-3.1-flash-image-preview`)
 - **API service** (`/src/lib/ai/gemini.ts`):
-  - Pure async function using `@google/generative-ai` SDK
-  - Sends image + prompt with `responseModalities: ['IMAGE', 'TEXT']`
+  - Pure async function using `@google/genai` SDK
+  - Sends image + prompt, parses response for inline image data
   - Parses response for image part; falls back to text error message if no image returned
 
 ## Environment setup
