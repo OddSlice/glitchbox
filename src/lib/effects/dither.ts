@@ -1,5 +1,4 @@
 import type { Effects } from '../../store/useEditorStore'
-import { luminance } from './utils'
 
 // Bayer 8x8 ordered dither matrix
 const BAYER_8X8 = [
