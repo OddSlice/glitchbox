@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 
 export interface GeminiEditResult {
   imageBase64: string
@@ -12,26 +12,21 @@ export async function editImageWithGemini(
   apiKey: string,
   modelId: string,
 ): Promise<GeminiEditResult> {
-  const genAI = new GoogleGenerativeAI(apiKey)
+  const ai = new GoogleGenAI({ apiKey })
 
-  const model = genAI.getGenerativeModel({
+  const response = await ai.models.generateContent({
     model: modelId,
-    generationConfig: {
-      responseModalities: ['IMAGE', 'TEXT'],
-    } as any,
+    contents: [
+      { text: `Edit this image: ${prompt}` },
+      {
+        inlineData: {
+          data: imageBase64,
+          mimeType,
+        },
+      },
+    ],
   })
 
-  const result = await model.generateContent([
-    { text: `Edit this image: ${prompt}` },
-    {
-      inlineData: {
-        data: imageBase64,
-        mimeType,
-      },
-    },
-  ])
-
-  const response = result.response
   const parts = response.candidates?.[0]?.content?.parts
 
   if (!parts || parts.length === 0) {
@@ -45,8 +40,8 @@ export async function editImageWithGemini(
 
   if (imagePart?.inlineData) {
     return {
-      imageBase64: imagePart.inlineData.data,
-      mimeType: imagePart.inlineData.mimeType,
+      imageBase64: imagePart.inlineData.data!,
+      mimeType: imagePart.inlineData.mimeType!,
     }
   }
 
