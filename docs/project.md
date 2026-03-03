@@ -72,6 +72,13 @@ Glitchbox is a professional browser-based image editing tool built with React, T
   - Same loading state ("Processing...") and error handling as the AI prompt apply
   - Clear/remove button on style reference preview to swap images
   - Disabled when no source image loaded, no style reference uploaded, or model unavailable
+- **Password-gated access**:
+  - AI tab is locked behind a password when `VITE_AI_PASSWORD_HASH` env var is set
+  - Password is never stored in the frontend — only its SHA-256 hash is in the env var
+  - Client-side hashing via `crypto.subtle.digest('SHA-256', ...)` compares input hash to stored hash
+  - Unlock state persists in `sessionStorage` (lasts until the browser tab is closed)
+  - Lock screen shows a lock icon, "Ask the owner for the password" hint, and a password input
+  - If `VITE_AI_PASSWORD_HASH` is empty or missing, the AI tab is fully open (no gate)
 
 ### Step 4: Polish — Undo/Redo, Full-Res Export, Before/After, Performance (complete)
 

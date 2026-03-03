@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useEditorStore } from '../store/useEditorStore'
 import { models, type ModelConfig } from '../config/models'
 import { editImageWithGemini, styleTransferWithGemini } from '../lib/ai/gemini'
@@ -19,9 +19,107 @@ function hasAnyApiKey(): boolean {
   return Object.values(apiKeys).some(Boolean)
 }
 
+/** Password hash stored as env var — never the plaintext password */
+const PASSWORD_HASH = (import.meta.env.VITE_AI_PASSWORD_HASH as string) || ''
+const PASSWORD_REQUIRED = PASSWORD_HASH.length > 0
+const SESSION_KEY = 'glitchbox_ai_unlocked'
+
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+// ─── Password Gate ────────────────────────────────────────────
+
+function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
+  const [input, setInput] = useState('')
+  const [checking, setChecking] = useState(false)
+  const [wrongPass, setWrongPass] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim()) return
+
+    setChecking(true)
+    setWrongPass(false)
+
+    const hash = await hashPassword(input.trim())
+
+    if (hash === PASSWORD_HASH) {
+      sessionStorage.setItem(SESSION_KEY, '1')
+      onUnlock()
+    } else {
+      setWrongPass(true)
+      setChecking(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full px-6">
+      <div className="w-full max-w-[220px] flex flex-col items-center gap-5">
+        {/* Lock icon */}
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-dim/40">
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" />
+        </svg>
+
+        <div className="text-center">
+          <p className="text-xs text-text-dim mb-1">AI features are locked</p>
+          <p className="text-[10px] text-text-dim/40">Ask the owner for the password</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="w-full space-y-2.5">
+          <input
+            type="password"
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value)
+              setWrongPass(false)
+            }}
+            placeholder="Enter password"
+            autoFocus
+            className="w-full bg-bg-lighter border border-border rounded px-3 py-2 text-xs text-text text-center placeholder:text-text-dim/40 focus:outline-none focus:border-amber/40"
+          />
+
+          <button
+            type="submit"
+            disabled={!input.trim() || checking}
+            className="w-full py-2 text-xs font-semibold rounded bg-amber text-bg hover:bg-amber-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {checking ? 'Checking...' : 'Unlock'}
+          </button>
+
+          {wrongPass && (
+            <p className="text-[10px] text-red-400 text-center">
+              Wrong password
+            </p>
+          )}
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main AI Panel ────────────────────────────────────────────
+
 export function AIPanel() {
   const image = useEditorStore((s) => s.image)
   const resetAll = useEditorStore((s) => s.resetAll)
+
+  // Password gate
+  const [unlocked, setUnlocked] = useState(() => {
+    if (!PASSWORD_REQUIRED) return true
+    return sessionStorage.getItem(SESSION_KEY) === '1'
+  })
+
+  // Re-check on mount (in case sessionStorage was cleared)
+  useEffect(() => {
+    if (!PASSWORD_REQUIRED) return
+    setUnlocked(sessionStorage.getItem(SESSION_KEY) === '1')
+  }, [])
 
   const [prompt, setPrompt] = useState('')
   const [selectedModel, setSelectedModel] = useState<ModelConfig>(models[0])
@@ -34,6 +132,11 @@ export function AIPanel() {
   const [styleLoading, setStyleLoading] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const styleInputRef = useRef<HTMLInputElement>(null)
+
+  // If password is required and not unlocked, show gate
+  if (PASSWORD_REQUIRED && !unlocked) {
+    return <PasswordGate onUnlock={() => setUnlocked(true)} />
+  }
 
   const hasImage = image !== null
   const isModelAvailable = selectedModel.available
