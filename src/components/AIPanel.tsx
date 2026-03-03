@@ -32,77 +32,6 @@ async function hashPassword(password: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-// ─── Password Gate ────────────────────────────────────────────
-
-function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
-  const [input, setInput] = useState('')
-  const [checking, setChecking] = useState(false)
-  const [wrongPass, setWrongPass] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim()) return
-
-    setChecking(true)
-    setWrongPass(false)
-
-    const hash = await hashPassword(input.trim())
-
-    if (hash === PASSWORD_HASH) {
-      sessionStorage.setItem(SESSION_KEY, '1')
-      onUnlock()
-    } else {
-      setWrongPass(true)
-      setChecking(false)
-    }
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center h-full px-6">
-      <div className="w-full max-w-[220px] flex flex-col items-center gap-5">
-        {/* Lock icon */}
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-dim/40">
-          <rect x="3" y="11" width="18" height="11" rx="2" />
-          <path d="M7 11V7a5 5 0 0110 0v4" />
-        </svg>
-
-        <div className="text-center">
-          <p className="text-xs text-text-dim mb-1">AI features are locked</p>
-          <p className="text-[10px] text-text-dim/40">Ask the owner for the password</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="w-full space-y-2.5">
-          <input
-            type="password"
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value)
-              setWrongPass(false)
-            }}
-            placeholder="Enter password"
-            autoFocus
-            className="w-full bg-bg-lighter border border-border rounded px-3 py-2 text-xs text-text text-center placeholder:text-text-dim/40 focus:outline-none focus:border-amber/40"
-          />
-
-          <button
-            type="submit"
-            disabled={!input.trim() || checking}
-            className="w-full py-2 text-xs font-semibold rounded bg-amber text-bg hover:bg-amber-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {checking ? 'Checking...' : 'Unlock'}
-          </button>
-
-          {wrongPass && (
-            <p className="text-[10px] text-red-400 text-center">
-              Wrong password
-            </p>
-          )}
-        </form>
-      </div>
-    </div>
-  )
-}
-
 // ─── Main AI Panel ────────────────────────────────────────────
 
 export function AIPanel() {
@@ -114,6 +43,9 @@ export function AIPanel() {
     if (!PASSWORD_REQUIRED) return true
     return sessionStorage.getItem(SESSION_KEY) === '1'
   })
+  const [passwordInput, setPasswordInput] = useState('')
+  const [passwordChecking, setPasswordChecking] = useState(false)
+  const [wrongPass, setWrongPass] = useState(false)
 
   // Re-check on mount (in case sessionStorage was cleared)
   useEffect(() => {
@@ -133,17 +65,96 @@ export function AIPanel() {
   const [isDragOver, setIsDragOver] = useState(false)
   const styleInputRef = useRef<HTMLInputElement>(null)
 
-  // If password is required and not unlocked, show gate
-  if (PASSWORD_REQUIRED && !unlocked) {
-    return <PasswordGate onUnlock={() => setUnlocked(true)} />
+  // All hooks must be above — no conditional returns before hooks
+
+  const loadStyleFile = useCallback((file: File) => {
+    if (!file.type.startsWith('image/')) return
+
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string
+      setStyleImage(dataUrl)
+      setStyleMimeType(file.type || 'image/png')
+    }
+    reader.readAsDataURL(file)
+  }, [])
+
+  // ─── Password submit handler ───────────────────────────────
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!passwordInput.trim()) return
+
+    setPasswordChecking(true)
+    setWrongPass(false)
+
+    const hash = await hashPassword(passwordInput.trim())
+
+    if (hash === PASSWORD_HASH) {
+      sessionStorage.setItem(SESSION_KEY, '1')
+      setUnlocked(true)
+    } else {
+      setWrongPass(true)
+      setPasswordChecking(false)
+    }
   }
+
+  // ─── Password gate screen ──────────────────────────────────
+
+  if (PASSWORD_REQUIRED && !unlocked) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full px-6">
+        <div className="w-full max-w-[220px] flex flex-col items-center gap-5">
+          {/* Lock icon */}
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-dim/40">
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0110 0v4" />
+          </svg>
+
+          <div className="text-center">
+            <p className="text-xs text-text-dim mb-1">AI features are locked</p>
+            <p className="text-[10px] text-text-dim/40">Ask the owner for the password</p>
+          </div>
+
+          <form onSubmit={handlePasswordSubmit} className="w-full space-y-2.5">
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => {
+                setPasswordInput(e.target.value)
+                setWrongPass(false)
+              }}
+              placeholder="Enter password"
+              autoFocus
+              className="w-full bg-bg-lighter border border-border rounded px-3 py-2 text-xs text-text text-center placeholder:text-text-dim/40 focus:outline-none focus:border-amber/40"
+            />
+
+            <button
+              type="submit"
+              disabled={!passwordInput.trim() || passwordChecking}
+              className="w-full py-2 text-xs font-semibold rounded bg-amber text-bg hover:bg-amber-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {passwordChecking ? 'Checking...' : 'Unlock'}
+            </button>
+
+            {wrongPass && (
+              <p className="text-[10px] text-red-400 text-center">
+                Wrong password
+              </p>
+            )}
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  // ─── AI Panel (unlocked) ───────────────────────────────────
 
   const hasImage = image !== null
   const isModelAvailable = selectedModel.available
   const hasKey = !!getApiKeyForModel(selectedModel)
   const hasAnyKey = hasAnyApiKey()
   const canApply = hasKey && hasImage && isModelAvailable && prompt.trim().length > 0 && !loading && !styleLoading
-  // Style transfer only works with Gemini models (needs system instruction + two-image call)
   const isGeminiModel = selectedModel.provider === 'google'
   const canStyleTransfer = hasKey && hasImage && isModelAvailable && isGeminiModel && styleImage !== null && !loading && !styleLoading
 
@@ -154,7 +165,6 @@ export function AIPanel() {
     setError(null)
 
     try {
-      // Render at original resolution using offscreen canvas
       const { image, adjustments, effects } = useEditorStore.getState()
       if (!image) throw new Error('No image loaded')
 
@@ -177,7 +187,6 @@ export function AIPanel() {
         throw new Error(`API key for ${selectedModel.provider} is not set.`)
       }
 
-      // Route to the correct provider
       let result: { imageBase64: string; mimeType: string }
 
       if (selectedModel.provider === 'openai') {
@@ -198,7 +207,6 @@ export function AIPanel() {
         )
       }
 
-      // Load the returned image and write it back to the canvas
       const img = new window.Image()
       img.onload = () => {
         resetAll()
@@ -216,20 +224,6 @@ export function AIPanel() {
       setLoading(false)
     }
   }
-
-  // --- Style Transfer ---
-
-  const loadStyleFile = useCallback((file: File) => {
-    if (!file.type.startsWith('image/')) return
-
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string
-      setStyleImage(dataUrl)
-      setStyleMimeType(file.type || 'image/png')
-    }
-    reader.readAsDataURL(file)
-  }, [])
 
   const handleStyleUpload = () => {
     styleInputRef.current?.click()
