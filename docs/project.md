@@ -55,13 +55,23 @@ Glitchbox is a professional browser-based image editing tool built with React, T
   - Currently configured:
     - **Gemini 2.5 Flash** (google) — available
     - **Gemini 3.1 Flash Preview** (google) — available
-    - **GPT-4o Vision** (openai) — coming soon
-    - **Stability AI** (stability) — coming soon
+    - **GPT Image 1.5** (openai) — coming soon
+    - **Seedream** (seedream) — coming soon
+    - **Qwen** (qwen) — coming soon
   - Unavailable models show "Coming soon" in the dropdown
 - **API service** (`/src/lib/ai/gemini.ts`):
   - Pure async function using `@google/genai` SDK
   - Sends image + prompt, parses response for inline image data
   - Falls back to text error message if no image returned
+- **Style Transfer** feature:
+  - Second upload zone in the AI tab for a style reference image (drop zone or click to upload)
+  - "Transfer Style" button sends both source image (full-resolution offscreen canvas) and style reference to Gemini
+  - Uses a baked-in two-step system prompt: Step 1 analyses the style reference in exhaustive detail (color palette, texture, grain, lighting, contrast, color grading, artistic style, edge treatment, effects, mood), Step 2 applies all identified characteristics to the source image while preserving content/composition
+  - System prompt passed as `config.systemInstruction` to the Gemini API
+  - Result written back to canvas with undo history support (Ctrl+Z to revert)
+  - Same loading state ("Processing...") and error handling as the AI prompt apply
+  - Clear/remove button on style reference preview to swap images
+  - Disabled when no source image loaded, no style reference uploaded, or model unavailable
 
 ### Step 4: Polish — Undo/Redo, Full-Res Export, Before/After, Performance (complete)
 
@@ -108,11 +118,12 @@ VITE_GEMINI_API_KEY=your_actual_key_here
 
 The `.env` file is gitignored and will not be committed.
 
-For future providers (OpenAI, Stability AI), add additional env vars:
+For future providers (OpenAI, Seedream, Qwen), add additional env vars:
 
 ```
 VITE_OPENAI_API_KEY=your_openai_key_here
-VITE_STABILITY_API_KEY=your_stability_key_here
+VITE_SEEDREAM_API_KEY=your_seedream_key_here
+VITE_QWEN_API_KEY=your_qwen_key_here
 ```
 
 ## Adding a new AI model
@@ -150,7 +161,7 @@ To add a new AI model to the dropdown:
 
 - Crop and rotate tools
 - Layer support
-- OpenAI GPT-4o Vision and Stability AI integration (model entries already in dropdown)
+- OpenAI GPT Image 1.5, Seedream, and Qwen integration (model entries already in dropdown)
 
 ## Known issues
 
