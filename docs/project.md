@@ -39,23 +39,59 @@ Glitchbox is a professional browser-based image editing tool built with React, T
 
 ### Step 3: AI tab (complete)
 
-- **AI tab** with Gemini 3.1 Flash integration for AI-powered image editing:
+- **AI tab** with Gemini integration for AI-powered image editing:
   - Multiline text prompt for describing edits in plain English
   - Model dropdown selector driven by `/src/config/models.ts` config array
-  - Sends current canvas state as base64 PNG + user prompt to Gemini API
+  - Sends full-resolution image (via offscreen canvas at original dimensions) + user prompt to Gemini API
   - Writes returned AI-edited image back to canvas, resetting adjustments/effects
   - Loading state: button shows "Processing..." and inputs disabled during API call
   - Error state: red error message displayed below prompt on failure
-  - Disabled state: Apply button disabled when no image is loaded
+  - Missing API key state: amber info banner with setup instructions, Apply button hidden
+  - Disabled state: Apply button disabled when no image loaded or model unavailable
   - Keyboard shortcut: Cmd/Ctrl+Enter to apply
 - **Model configuration** (`/src/config/models.ts`):
-  - Array of `ModelConfig` objects: `{ id, name, provider, apiKeyLabel }`
-  - Adding a new model = adding one entry to the array
-  - Currently: Gemini 3.1 Flash (`gemini-3.1-flash-image-preview`)
+  - Array of `ModelConfig` objects: `{ id, name, provider, apiKeyLabel, available }`
+  - Adding a new model = adding one entry to the array (see "Adding a new AI model" below)
+  - Currently configured:
+    - **Gemini 2.5 Flash** (google) — available
+    - **Gemini 3.1 Flash Preview** (google) — available
+    - **GPT-4o Vision** (openai) — coming soon
+    - **Stability AI** (stability) — coming soon
+  - Unavailable models show "Coming soon" in the dropdown
 - **API service** (`/src/lib/ai/gemini.ts`):
   - Pure async function using `@google/genai` SDK
   - Sends image + prompt, parses response for inline image data
-  - Parses response for image part; falls back to text error message if no image returned
+  - Falls back to text error message if no image returned
+
+### Step 4: Polish — Undo/Redo, Full-Res Export, Before/After, Performance (complete)
+
+- **Undo/Redo**:
+  - Two-stack model (`past`/`future` arrays) in Zustand store, capped at 50 snapshots
+  - Each snapshot stores `{ adjustments, effects, activePreset }`
+  - Debounced at 300ms — slider drags produce one history entry per drag, not per tick
+  - Discrete operations (preset apply, reset) push immediately
+  - Keyboard shortcuts: **Ctrl+Z** (undo), **Ctrl+Shift+Z** / **Ctrl+Y** (redo)
+  - Two icon buttons in the top bar (undo/redo arrows), greyed out when unavailable
+  - History resets on new image upload
+- **Export at original resolution**:
+  - Export creates an offscreen canvas at `image.naturalWidth x naturalHeight`
+  - Full pipeline (CSS filters -> pixel manipulation -> effects) applied at original size
+  - Uses `canvas.toBlob()` for efficient download
+  - Display canvas stays at scaled-down size for performance
+  - Shared `renderToCanvas()` utility (`/src/lib/renderPipeline.ts`) used by display, export, and AI
+  - Export button flashes "Exported ✓" for 2 seconds after successful download
+- **Before/After toggle**:
+  - "Before" button in the top bar, between undo/redo and Upload
+  - Hold (mousedown) to show original unedited image; release to return to edited
+  - Short click (<300ms) toggles on/off for accessibility
+  - Active state shows amber styling
+  - Instant swap — no re-render, just draws raw image without filters/effects
+- **Performance pipeline cache**:
+  - Caches fully rendered `ImageData` + the parameters that produced it
+  - On re-render, if adjustments + effects + dimensions unchanged -> `putImageData` from cache (skips entire pipeline)
+  - Cache cleared on image change
+  - Freezes random effects (film grain, VHS noise) to stable patterns — standard for static image editors
+  - Combined with existing RAF cancellation for smooth slider interaction
 
 ## Environment setup
 
@@ -72,19 +108,52 @@ VITE_GEMINI_API_KEY=your_actual_key_here
 
 The `.env` file is gitignored and will not be committed.
 
+For future providers (OpenAI, Stability AI), add additional env vars:
+
+```
+VITE_OPENAI_API_KEY=your_openai_key_here
+VITE_STABILITY_API_KEY=your_stability_key_here
+```
+
+## Adding a new AI model
+
+To add a new AI model to the dropdown:
+
+1. **Add an entry to `/src/config/models.ts`**:
+   ```typescript
+   {
+     id: 'your-model-id',        // API model identifier
+     name: 'Display Name',       // shown in the dropdown
+     provider: 'provider-name',  // e.g. 'openai', 'stability'
+     apiKeyLabel: 'VITE_YOUR_API_KEY', // env var name for the API key
+     available: false,           // set to true once the service is wired up
+   }
+   ```
+
+2. **Create a service file** at `/src/lib/ai/your-provider.ts` that exports an async function matching the same pattern as `gemini.ts` — takes `(imageBase64, mimeType, prompt, apiKey, modelId)` and returns `{ imageBase64, mimeType }`.
+
+3. **Update `AIPanel.tsx`** to import your service and call it when the selected model's provider matches. Currently the `handleApply` function calls `editImageWithGemini` directly — add a conditional branch for your provider.
+
+4. **Set `available: true`** in the models config once the service is working.
+
+5. **Add the env var** to `.env.example` so other developers know to set it up.
+
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| Ctrl+Z | Undo |
+| Ctrl+Shift+Z / Ctrl+Y | Redo |
+| Cmd/Ctrl+Enter | Apply AI edit (in AI tab) |
+
 ## What's coming next
 
-- Undo/redo history
 - Crop and rotate tools
-- Before/after comparison view
 - Layer support
-- Additional AI models (add entries to `/src/config/models.ts`)
+- OpenAI GPT-4o Vision and Stability AI integration (model entries already in dropdown)
 
 ## Known issues
 
-- **Performance with multiple expensive effects**: Effects like Gaussian Blur, Bloom, and Dithering each do their own getImageData/putImageData. With many active simultaneously on large images, frame time can increase. Web Workers or WebGL would help.
 - **Temperature model is simplified**: Uses a linear additive shift rather than a proper Kelvin-to-RGB curve.
-- **No undo/redo**: Slider changes are immediate with no history stack.
-- **Export resolution**: Export uses display-scaled canvas dimensions, not original image resolution.
-- **Film grain is non-deterministic**: Grain pattern changes on each re-render since it uses Math.random(). A seeded PRNG would make it stable.
-- **AI sends display-scaled image**: The AI receives the canvas at display resolution, not original image resolution.
+- **Film grain is non-deterministic**: Grain pattern changes on each re-render since it uses Math.random(). A seeded PRNG would make it stable. (Mitigated by pipeline cache which freezes the pattern.)
+- **Large image export/AI can be slow**: Exporting or sending very large images (e.g., 6000x4000) runs the full effects pipeline at original resolution, which can take several seconds for expensive effects like blur and bloom.

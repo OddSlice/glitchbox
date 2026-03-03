@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react'
 import { useEditorStore } from '../store/useEditorStore'
-import { applyTemperatureExposureSharpness } from '../lib/canvasEffects'
-import { applyEffects, hasActiveEffects } from '../lib/effects'
+import { renderToCanvas } from '../lib/renderPipeline'
+import type { Adjustments, Effects } from '../store/useEditorStore'
 
 export function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -10,6 +10,21 @@ export function Canvas() {
   const image = useEditorStore((s) => s.image)
   const adjustments = useEditorStore((s) => s.adjustments)
   const effects = useEditorStore((s) => s.effects)
+  const showOriginal = useEditorStore((s) => s.showOriginal)
+
+  // Performance cache: stores the fully rendered ImageData + the params that produced it
+  const cacheRef = useRef<{
+    imageData: ImageData | null
+    adjustments: Adjustments | null
+    effects: Effects | null
+    w: number
+    h: number
+  }>({ imageData: null, adjustments: null, effects: null, w: 0, h: 0 })
+
+  // Clear cache when image changes
+  useEffect(() => {
+    cacheRef.current = { imageData: null, adjustments: null, effects: null, w: 0, h: 0 }
+  }, [image])
 
   const render = useCallback(() => {
     // Cancel any pending frame to avoid stacking
@@ -43,35 +58,44 @@ export function Canvas() {
 
       if (drawW <= 0 || drawH <= 0) return
 
+      // Before/After: show original unedited image
+      if (showOriginal) {
+        canvas.width = drawW
+        canvas.height = drawH
+        ctx.drawImage(image, 0, 0, drawW, drawH)
+        return
+      }
+
+      // Check if we can use cached result (same params + dimensions)
+      const cache = cacheRef.current
+      if (
+        cache.imageData &&
+        drawW === cache.w &&
+        drawH === cache.h &&
+        adjustments === cache.adjustments &&
+        effects === cache.effects
+      ) {
+        canvas.width = drawW
+        canvas.height = drawH
+        ctx.putImageData(cache.imageData, 0, 0)
+        return
+      }
+
+      // Full render
       canvas.width = drawW
       canvas.height = drawH
+      renderToCanvas(ctx, image, drawW, drawH, adjustments, effects)
 
-      // Apply CSS filters for brightness, contrast, saturation, hue
-      const { brightness, contrast, saturation, hue } = adjustments
-      ctx.filter = [
-        `brightness(${brightness / 100})`,
-        `contrast(${contrast / 100})`,
-        `saturate(${saturation / 100})`,
-        `hue-rotate(${hue}deg)`,
-      ].join(' ')
-
-      ctx.drawImage(image, 0, 0, drawW, drawH)
-
-      // Reset filter before pixel manipulation
-      ctx.filter = 'none'
-
-      // Apply temperature, exposure, sharpness via pixel manipulation
-      const { temperature, exposure, sharpness } = adjustments
-      if (temperature !== 0 || exposure !== 0 || sharpness !== 0) {
-        applyTemperatureExposureSharpness(ctx, drawW, drawH, temperature, exposure, sharpness)
-      }
-
-      // Apply effects (stacked on top of adjustments)
-      if (hasActiveEffects(effects)) {
-        applyEffects(ctx, drawW, drawH, effects)
+      // Cache the result for next frame
+      cacheRef.current = {
+        imageData: ctx.getImageData(0, 0, drawW, drawH),
+        adjustments,
+        effects,
+        w: drawW,
+        h: drawH,
       }
     })
-  }, [image, adjustments, effects])
+  }, [image, adjustments, effects, showOriginal])
 
   useEffect(() => {
     render()

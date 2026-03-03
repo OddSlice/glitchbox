@@ -98,6 +98,16 @@ export const defaultEffects: Effects = {
 
 export type TabId = 'adjust' | 'effects' | 'presets' | 'ai'
 
+// --- Undo/Redo types ---
+
+interface Snapshot {
+  adjustments: Adjustments
+  effects: Effects
+  activePreset: string | null
+}
+
+const MAX_HISTORY = 50
+
 interface EditorState {
   image: HTMLImageElement | null
   fileName: string | null
@@ -105,6 +115,15 @@ interface EditorState {
   effects: Effects
   activeTab: TabId
   activePreset: string | null
+
+  // Undo/Redo
+  past: Snapshot[]
+  future: Snapshot[]
+  canUndo: boolean
+  canRedo: boolean
+
+  // Before/After
+  showOriginal: boolean
 
   setImage: (img: HTMLImageElement, fileName: string) => void
   setAdjustment: <K extends keyof Adjustments>(key: K, value: Adjustments[K]) => void
@@ -114,7 +133,60 @@ interface EditorState {
   resetAll: () => void
   setActiveTab: (tab: TabId) => void
   applyPreset: (presetId: string, adjustments: Partial<Adjustments>, effects: Partial<Effects>) => void
+
+  // History actions (internal)
+  _commitToHistory: (snapshot: Snapshot) => void
+  undo: () => void
+  redo: () => void
+
+  // Before/After
+  setShowOriginal: (v: boolean) => void
 }
+
+// --- Module-level debounce for history ---
+
+let pendingSnapshot: Snapshot | null = null
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+function captureSnapshot(): Snapshot {
+  const { adjustments, effects, activePreset } = useEditorStore.getState()
+  return {
+    adjustments: { ...adjustments },
+    effects: { ...effects },
+    activePreset,
+  }
+}
+
+function commitPending() {
+  if (pendingSnapshot) {
+    useEditorStore.getState()._commitToHistory(pendingSnapshot)
+    pendingSnapshot = null
+  }
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+    debounceTimer = null
+  }
+}
+
+/** Debounced history push — call on every slider tick. Captures pre-change state on first call. */
+export function pushHistory() {
+  if (!pendingSnapshot) {
+    pendingSnapshot = captureSnapshot()
+  }
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    commitPending()
+  }, 300)
+}
+
+/** Immediate history push — call before discrete operations (preset, reset). */
+export function pushHistoryImmediate() {
+  commitPending() // flush any pending slider changes first
+  const snapshot = captureSnapshot()
+  useEditorStore.getState()._commitToHistory(snapshot)
+}
+
+// --- Store ---
 
 export const useEditorStore = create<EditorState>((set) => ({
   image: null,
@@ -124,36 +196,136 @@ export const useEditorStore = create<EditorState>((set) => ({
   activeTab: 'adjust',
   activePreset: null,
 
-  setImage: (img, fileName) => set({ image: img, fileName }),
+  // Undo/Redo initial state
+  past: [],
+  future: [],
+  canUndo: false,
+  canRedo: false,
 
-  setAdjustment: (key, value) =>
+  // Before/After
+  showOriginal: false,
+
+  setImage: (img, fileName) => {
+    // Flush any pending history before image change
+    commitPending()
+    set({
+      image: img,
+      fileName,
+      adjustments: { ...defaultAdjustments },
+      effects: { ...defaultEffects },
+      activePreset: null,
+      past: [],
+      future: [],
+      canUndo: false,
+      canRedo: false,
+      showOriginal: false,
+    })
+  },
+
+  setAdjustment: (key, value) => {
+    pushHistory()
     set((state) => ({
       adjustments: { ...state.adjustments, [key]: value },
       activePreset: null,
-    })),
+    }))
+  },
 
-  setEffect: (key, value) =>
+  setEffect: (key, value) => {
+    pushHistory()
     set((state) => ({
       effects: { ...state.effects, [key]: value },
       activePreset: null,
-    })),
+    }))
+  },
 
-  resetAdjustments: () => set({ adjustments: { ...defaultAdjustments } }),
+  resetAdjustments: () => {
+    pushHistoryImmediate()
+    set({ adjustments: { ...defaultAdjustments } })
+  },
 
-  resetEffects: () => set({ effects: { ...defaultEffects } }),
+  resetEffects: () => {
+    pushHistoryImmediate()
+    set({ effects: { ...defaultEffects } })
+  },
 
-  resetAll: () => set({
-    adjustments: { ...defaultAdjustments },
-    effects: { ...defaultEffects },
-    activePreset: null,
-  }),
+  resetAll: () => {
+    pushHistoryImmediate()
+    set({
+      adjustments: { ...defaultAdjustments },
+      effects: { ...defaultEffects },
+      activePreset: null,
+    })
+  },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
 
-  applyPreset: (presetId, adjustments, effects) =>
+  applyPreset: (presetId, adjustments, effects) => {
+    pushHistoryImmediate()
     set({
       adjustments: { ...defaultAdjustments, ...adjustments },
       effects: { ...defaultEffects, ...effects },
       activePreset: presetId,
+    })
+  },
+
+  // --- History internals ---
+
+  _commitToHistory: (snapshot) =>
+    set((state) => {
+      const newPast = [...state.past, snapshot]
+      if (newPast.length > MAX_HISTORY) newPast.shift()
+      return {
+        past: newPast,
+        future: [],
+        canUndo: true,
+        canRedo: false,
+      }
     }),
+
+  undo: () => {
+    // Flush any pending debounce so the current state is saved
+    commitPending()
+    set((state) => {
+      if (state.past.length === 0) return state
+      const newPast = [...state.past]
+      const snapshot = newPast.pop()!
+      const currentSnapshot: Snapshot = {
+        adjustments: { ...state.adjustments },
+        effects: { ...state.effects },
+        activePreset: state.activePreset,
+      }
+      return {
+        past: newPast,
+        future: [...state.future, currentSnapshot],
+        adjustments: { ...snapshot.adjustments },
+        effects: { ...snapshot.effects },
+        activePreset: snapshot.activePreset,
+        canUndo: newPast.length > 0,
+        canRedo: true,
+      }
+    })
+  },
+
+  redo: () =>
+    set((state) => {
+      if (state.future.length === 0) return state
+      const newFuture = [...state.future]
+      const snapshot = newFuture.pop()!
+      const currentSnapshot: Snapshot = {
+        adjustments: { ...state.adjustments },
+        effects: { ...state.effects },
+        activePreset: state.activePreset,
+      }
+      return {
+        past: [...state.past, currentSnapshot],
+        future: newFuture,
+        adjustments: { ...snapshot.adjustments },
+        effects: { ...snapshot.effects },
+        activePreset: snapshot.activePreset,
+        canUndo: true,
+        canRedo: newFuture.length > 0,
+      }
+    }),
+
+  setShowOriginal: (v) => set({ showOriginal: v }),
 }))
