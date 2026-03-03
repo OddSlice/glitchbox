@@ -389,9 +389,12 @@ export function AIPanel() {
             <div className="border-t border-border" />
 
             <div>
-              <h3 className="text-[11px] font-semibold text-text-dim uppercase tracking-wider mb-3">
+              <h3 className="text-[11px] font-semibold text-text-dim uppercase tracking-wider mb-1">
                 Style Transfer
               </h3>
+              <p className="text-[10px] text-text-dim/40 mb-3">
+                Upload a reference image and AI will apply its visual style to your photo.
+              </p>
 
               {!isGeminiModel && isModelAvailable && (
                 <p className="text-[10px] text-text-dim/50 mb-2">
