@@ -1,13 +1,13 @@
 import { useEditorStore, type TabId } from '../store/useEditorStore'
 import { AdjustPanel } from './AdjustPanel'
 import { EffectsPanel } from './EffectsPanel'
-import { PresetsPanel } from './PresetsPanel'
+// import { PresetsPanel } from './PresetsPanel'  // Hidden for now
 import { AIPanel } from './AIPanel'
 
 const tabs: { id: TabId; label: string }[] = [
   { id: 'adjust', label: 'Adjust' },
   { id: 'effects', label: 'Effects' },
-  { id: 'presets', label: 'Presets' },
+  // { id: 'presets', label: 'Presets' },  // Hidden for now
   { id: 'ai', label: 'AI' },
 ]
 
@@ -36,7 +36,7 @@ export function Sidebar() {
       <div className="flex-1 min-h-0">
         {activeTab === 'adjust' && <AdjustPanel />}
         {activeTab === 'effects' && <EffectsPanel />}
-        {activeTab === 'presets' && <PresetsPanel />}
+        {/* {activeTab === 'presets' && <PresetsPanel />} */}
         {activeTab === 'ai' && <AIPanel />}
       </div>
     </aside>
