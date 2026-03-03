@@ -26,7 +26,7 @@ export const models: ModelConfig[] = [
     name: 'GPT Image 1.5',
     provider: 'openai',
     apiKeyLabel: 'VITE_OPENAI_API_KEY',
-    available: false,
+    available: true,
   },
   {
     id: 'seedream',

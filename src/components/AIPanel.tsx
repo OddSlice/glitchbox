@@ -2,9 +2,22 @@ import { useCallback, useRef, useState } from 'react'
 import { useEditorStore } from '../store/useEditorStore'
 import { models, type ModelConfig } from '../config/models'
 import { editImageWithGemini, styleTransferWithGemini } from '../lib/ai/gemini'
+import { editImageWithOpenAI } from '../lib/ai/openai'
 import { renderToCanvas } from '../lib/renderPipeline'
 
-const hasApiKey = !!import.meta.env.VITE_GEMINI_API_KEY
+/** Check which provider keys are available */
+const apiKeys: Record<string, string | undefined> = {
+  google: import.meta.env.VITE_GEMINI_API_KEY as string | undefined,
+  openai: import.meta.env.VITE_OPENAI_API_KEY as string | undefined,
+}
+
+function getApiKeyForModel(model: ModelConfig): string | undefined {
+  return apiKeys[model.provider]
+}
+
+function hasAnyApiKey(): boolean {
+  return Object.values(apiKeys).some(Boolean)
+}
 
 export function AIPanel() {
   const image = useEditorStore((s) => s.image)
@@ -24,8 +37,12 @@ export function AIPanel() {
 
   const hasImage = image !== null
   const isModelAvailable = selectedModel.available
-  const canApply = hasApiKey && hasImage && isModelAvailable && prompt.trim().length > 0 && !loading && !styleLoading
-  const canStyleTransfer = hasApiKey && hasImage && isModelAvailable && styleImage !== null && !loading && !styleLoading
+  const hasKey = !!getApiKeyForModel(selectedModel)
+  const hasAnyKey = hasAnyApiKey()
+  const canApply = hasKey && hasImage && isModelAvailable && prompt.trim().length > 0 && !loading && !styleLoading
+  // Style transfer only works with Gemini models (needs system instruction + two-image call)
+  const isGeminiModel = selectedModel.provider === 'google'
+  const canStyleTransfer = hasKey && hasImage && isModelAvailable && isGeminiModel && styleImage !== null && !loading && !styleLoading
 
   const handleApply = async () => {
     if (!canApply) return
@@ -52,20 +69,31 @@ export function AIPanel() {
       const dataUrl = offscreen.toDataURL('image/png')
       const base64 = dataUrl.split(',')[1]
 
-      // Read API key from env
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string
+      const apiKey = getApiKeyForModel(selectedModel)
       if (!apiKey) {
-        throw new Error('VITE_GEMINI_API_KEY is not set.')
+        throw new Error(`API key for ${selectedModel.provider} is not set.`)
       }
 
-      // Call Gemini
-      const result = await editImageWithGemini(
-        base64,
-        'image/png',
-        prompt.trim(),
-        apiKey,
-        selectedModel.id,
-      )
+      // Route to the correct provider
+      let result: { imageBase64: string; mimeType: string }
+
+      if (selectedModel.provider === 'openai') {
+        result = await editImageWithOpenAI(
+          base64,
+          'image/png',
+          prompt.trim(),
+          apiKey,
+          selectedModel.id,
+        )
+      } else {
+        result = await editImageWithGemini(
+          base64,
+          'image/png',
+          prompt.trim(),
+          apiKey,
+          selectedModel.id,
+        )
+      }
 
       // Load the returned image and write it back to the canvas
       const img = new window.Image()
@@ -107,7 +135,6 @@ export function AIPanel() {
   const handleStyleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) loadStyleFile(file)
-    // Reset input so the same file can be re-selected
     if (styleInputRef.current) styleInputRef.current.value = ''
   }
 
@@ -142,7 +169,6 @@ export function AIPanel() {
       const { image, adjustments, effects } = useEditorStore.getState()
       if (!image) throw new Error('No image loaded')
 
-      // Render source at full resolution
       const w = image.naturalWidth
       const h = image.naturalHeight
 
@@ -157,12 +183,11 @@ export function AIPanel() {
       const sourceDataUrl = offscreen.toDataURL('image/png')
       const sourceBase64 = sourceDataUrl.split(',')[1]
 
-      // Extract style image base64
       const styleBase64 = styleImage.split(',')[1]
 
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string
+      const apiKey = getApiKeyForModel(selectedModel)
       if (!apiKey) {
-        throw new Error('VITE_GEMINI_API_KEY is not set.')
+        throw new Error(`API key for ${selectedModel.provider} is not set.`)
       }
 
       const result = await styleTransferWithGemini(
@@ -174,7 +199,6 @@ export function AIPanel() {
         selectedModel.id,
       )
 
-      // Load the result image back to canvas
       const img = new window.Image()
       img.onload = () => {
         resetAll()
@@ -198,9 +222,16 @@ export function AIPanel() {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         {/* API key missing banner */}
-        {!hasApiKey && (
+        {!hasAnyKey && (
           <div className="text-[11px] text-amber bg-amber/10 border border-amber/20 rounded px-3 py-2.5 leading-relaxed">
-            To use AI editing, add your Gemini API key to the <code className="bg-amber/10 px-1 rounded">.env</code> file and restart the dev server. See <code className="bg-amber/10 px-1 rounded">docs/project.md</code> for setup instructions.
+            To use AI editing, add your API key to the <code className="bg-amber/10 px-1 rounded">.env</code> file and restart the dev server. See <code className="bg-amber/10 px-1 rounded">docs/project.md</code> for setup instructions.
+          </div>
+        )}
+
+        {/* Per-model key missing hint */}
+        {hasAnyKey && isModelAvailable && !hasKey && (
+          <div className="text-[11px] text-amber bg-amber/10 border border-amber/20 rounded px-3 py-2.5 leading-relaxed">
+            This model requires <code className="bg-amber/10 px-1 rounded">{selectedModel.apiKeyLabel}</code> in your <code className="bg-amber/10 px-1 rounded">.env</code> file. Add it and restart the dev server.
           </div>
         )}
 
@@ -225,7 +256,7 @@ export function AIPanel() {
           </select>
           {!isModelAvailable && (
             <p className="text-[10px] text-text-dim/50 mt-1.5">
-              This model is not yet wired up. Select a Gemini model to use AI editing.
+              This model is not yet wired up. Select an available model to use AI editing.
             </p>
           )}
         </div>
@@ -244,19 +275,19 @@ export function AIPanel() {
               }
             }}
             placeholder="Describe how you want to edit your image... e.g. make it look like a sunset, add a moody dark atmosphere"
-            disabled={!hasApiKey || !hasImage || !isModelAvailable || isProcessing}
+            disabled={!hasKey || !hasImage || !isModelAvailable || isProcessing}
             rows={5}
             className="w-full bg-bg-lighter border border-border rounded px-3 py-2.5 text-xs text-text leading-relaxed placeholder:text-text-dim/40 focus:outline-none focus:border-amber/40 resize-none disabled:opacity-40 disabled:cursor-not-allowed"
           />
-          {hasApiKey && hasImage && isModelAvailable && (
+          {hasKey && hasImage && isModelAvailable && (
             <p className="text-[10px] text-text-dim/40 mt-1.5">
               Cmd+Enter to apply
             </p>
           )}
         </div>
 
-        {/* Divider + Style Transfer section */}
-        {hasApiKey && (
+        {/* Divider + Style Transfer section (Gemini only) */}
+        {hasAnyKey && (
           <>
             <div className="border-t border-border" />
 
@@ -264,6 +295,12 @@ export function AIPanel() {
               <h3 className="text-[11px] font-semibold text-text-dim uppercase tracking-wider mb-3">
                 Style Transfer
               </h3>
+
+              {!isGeminiModel && isModelAvailable && (
+                <p className="text-[10px] text-text-dim/50 mb-2">
+                  Style Transfer is currently available with Gemini models only. Select a Gemini model to use this feature.
+                </p>
+              )}
 
               {/* Style reference drop zone / preview */}
               {styleImage ? (
@@ -294,7 +331,7 @@ export function AIPanel() {
                     isDragOver
                       ? 'border-amber bg-amber/5'
                       : 'border-border hover:border-amber/40 hover:bg-bg-lighter/50'
-                  } ${(!hasImage || !isModelAvailable || isProcessing) ? 'opacity-40 pointer-events-none' : ''}`}
+                  } ${(!hasImage || !isModelAvailable || !isGeminiModel || isProcessing) ? 'opacity-40 pointer-events-none' : ''}`}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-dim/50">
                     <rect x="3" y="3" width="18" height="18" rx="3" />
@@ -319,7 +356,13 @@ export function AIPanel() {
               <button
                 onClick={handleStyleTransfer}
                 disabled={!canStyleTransfer}
-                title={!styleImage ? 'Upload a style reference image first' : undefined}
+                title={
+                  !isGeminiModel
+                    ? 'Style Transfer requires a Gemini model'
+                    : !styleImage
+                      ? 'Upload a style reference image first'
+                      : undefined
+                }
                 className="w-full mt-3 py-2.5 text-xs font-semibold rounded bg-amber text-bg hover:bg-amber-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 {styleLoading ? 'Processing...' : 'Transfer Style'}
@@ -336,15 +379,15 @@ export function AIPanel() {
         )}
 
         {/* Info note when no image */}
-        {hasApiKey && !hasImage && (
+        {hasAnyKey && !hasImage && (
           <div className="text-[11px] text-text-dim/50 text-center py-4">
             Upload an image to start using AI editing
           </div>
         )}
       </div>
 
-      {/* Fixed bottom: Apply button — hidden when no API key */}
-      {hasApiKey && (
+      {/* Fixed bottom: Apply button — hidden when no API keys at all */}
+      {hasAnyKey && (
         <div className="shrink-0 p-4 border-t border-border">
           <button
             onClick={handleApply}

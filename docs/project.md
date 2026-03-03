@@ -55,14 +55,14 @@ Glitchbox is a professional browser-based image editing tool built with React, T
   - Currently configured:
     - **Gemini 2.5 Flash** (google) — available
     - **Gemini 3.1 Flash Preview** (google) — available
-    - **GPT Image 1.5** (openai) — coming soon
+    - **GPT Image 1.5** (openai) — available
     - **Seedream** (seedream) — coming soon
     - **Qwen** (qwen) — coming soon
   - Unavailable models show "Coming soon" in the dropdown
-- **API service** (`/src/lib/ai/gemini.ts`):
-  - Pure async function using `@google/genai` SDK
-  - Sends image + prompt, parses response for inline image data
-  - Falls back to text error message if no image returned
+- **API services**:
+  - `/src/lib/ai/gemini.ts` — Gemini service using `@google/genai` SDK. Sends image + prompt, parses response for inline image data. Also handles Style Transfer (two-image call with system instruction).
+  - `/src/lib/ai/openai.ts` — OpenAI service using `openai` SDK (browser mode). Converts base64 to File, calls `images.edit()`, returns b64_json response.
+  - Provider routing in `AIPanel.tsx` — selects the correct service based on `model.provider`
 - **Style Transfer** feature:
   - Second upload zone in the AI tab for a style reference image (drop zone or click to upload)
   - "Transfer Style" button sends both source image (full-resolution offscreen canvas) and style reference to Gemini
@@ -107,13 +107,14 @@ Glitchbox is a professional browser-based image editing tool built with React, T
 
 To use the AI tab, you need a Gemini API key:
 
-1. Get an API key at https://aistudio.google.com/apikey
+1. Get a Gemini API key at https://aistudio.google.com/apikey and/or an OpenAI API key at https://platform.openai.com/api-keys
 2. Copy `.env.example` to `.env` in the project root
-3. Replace `your_gemini_api_key_here` with your actual key
+3. Replace the placeholder values with your actual keys
 4. Restart the dev server (`npm run dev`)
 
 ```
-VITE_GEMINI_API_KEY=your_actual_key_here
+VITE_GEMINI_API_KEY=your_actual_gemini_key_here
+VITE_OPENAI_API_KEY=your_actual_openai_key_here
 ```
 
 The `.env` file is gitignored and will not be committed.
@@ -161,7 +162,7 @@ To add a new AI model to the dropdown:
 
 - Crop and rotate tools
 - Layer support
-- OpenAI GPT Image 1.5, Seedream, and Qwen integration (model entries already in dropdown)
+- Seedream and Qwen integration (model entries already in dropdown)
 
 ## Known issues
 
