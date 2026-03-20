@@ -116,7 +116,7 @@ export function Canvas() {
       <canvas
         ref={canvasRef}
         id="editor-canvas"
-        className={image ? 'block shadow-2xl' : 'hidden'}
+        className={image ? 'block rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.5)]' : 'hidden'}
       />
       {!image && <DropZone />}
     </div>
@@ -149,12 +149,16 @@ function DropZone() {
       onClick={handleClick}
       onDrop={handleDrop}
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
-      className="border-2 border-dashed border-border hover:border-primary/40 rounded-lg w-[480px] h-[320px] flex flex-col items-center justify-center cursor-pointer transition-colors group"
+      className="border-2 border-dashed border-primary/25 hover:border-primary/50 bg-primary/[0.02] hover:bg-primary/[0.04] rounded-2xl w-[480px] h-[320px] flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group"
     >
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-text-dim/30 group-hover:text-primary/50 transition-colors mb-4">
-        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-      <p className="text-text-dim text-sm">Drop your image here or click Upload</p>
+      <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mb-4 group-hover:bg-primary/12 transition-colors">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-primary/60 group-hover:text-primary/80 transition-colors">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </div>
+      <p className="text-text-dim text-sm">
+        Drop your image here or click <span className="text-primary font-medium">Upload</span>
+      </p>
     </div>
   )
 }

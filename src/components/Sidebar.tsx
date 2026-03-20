@@ -22,10 +22,10 @@ export function Sidebar() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2.5 text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex-1 py-3 text-[11px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeTab === tab.id
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-text-dim hover:text-text'
+                ? 'text-primary border-b-2 border-primary bg-primary/[0.03]'
+                : 'text-text-muted hover:text-text-dim'
             }`}
           >
             {tab.label}

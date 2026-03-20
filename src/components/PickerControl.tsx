@@ -8,16 +8,16 @@ interface PickerControlProps {
 export function PickerControl({ label, value, options, onChange }: PickerControlProps) {
   return (
     <div className="group">
-      <span className="text-xs text-text-dim group-hover:text-text transition-colors block mb-1.5">{label}</span>
-      <div className="flex gap-1">
+      <span className="text-[11px] text-text-dim group-hover:text-text transition-colors block mb-2">{label}</span>
+      <div className="flex gap-1.5">
         {options.map((opt) => (
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
-            className={`flex-1 py-1 px-1.5 text-[10px] font-medium rounded transition-colors cursor-pointer ${
+            className={`flex-1 py-1.5 px-2 text-[10px] font-medium rounded-lg transition-all cursor-pointer ${
               value === opt.value
-                ? 'bg-primary/20 text-primary border border-primary/40'
-                : 'bg-bg-lighter text-text-dim border border-border hover:text-text hover:border-primary/20'
+                ? 'bg-primary/15 text-primary border border-primary/30'
+                : 'bg-bg-lighter text-text-muted border border-border hover:text-text-dim hover:border-border-hover hover:bg-bg-elevated/50'
             }`}
           >
             {opt.label}

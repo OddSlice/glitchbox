@@ -106,7 +106,7 @@ export function EffectsPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
+      <div className="flex-1 overflow-y-auto p-5 space-y-6">
         {groups.map((group) => (
           <EffectsGroup key={group.title} group={group} effects={effects} setEffect={setEffect} />
         ))}
@@ -115,7 +115,7 @@ export function EffectsPanel() {
       <div className="shrink-0 p-4 border-t border-border">
         <button
           onClick={resetAll}
-          className="w-full py-2 text-xs font-medium rounded border border-border text-text-dim hover:text-text hover:border-primary/40 transition-colors cursor-pointer"
+          className="w-full py-2.5 text-[11px] font-semibold rounded-lg border border-border text-text-dim hover:text-text hover:border-border-hover hover:bg-bg-elevated/50 transition-all cursor-pointer"
         >
           Reset All
         </button>
@@ -135,8 +135,8 @@ function EffectsGroup({
 }) {
   return (
     <div>
-      <h3 className="text-[11px] font-semibold text-text-dim uppercase tracking-wider mb-3">{group.title}</h3>
-      <div className="space-y-3">
+      <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.1em] mb-4">{group.title}</h3>
+      <div className="space-y-4">
         {group.controls.map((ctrl) => {
           if (ctrl.type === 'slider') {
             return (

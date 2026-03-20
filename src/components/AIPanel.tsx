@@ -104,19 +104,21 @@ export function AIPanel() {
   if (PASSWORD_REQUIRED && !unlocked) {
     return (
       <div className="flex flex-col items-center justify-center h-full px-6">
-        <div className="w-full max-w-[220px] flex flex-col items-center gap-5">
+        <div className="w-full max-w-[240px] flex flex-col items-center gap-5">
           {/* Lock icon */}
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-dim/40">
-            <rect x="3" y="11" width="18" height="11" rx="2" />
-            <path d="M7 11V7a5 5 0 0110 0v4" />
-          </svg>
-
-          <div className="text-center">
-            <p className="text-xs text-text-dim mb-1">AI features are locked</p>
-            <p className="text-[10px] text-text-dim/40">Ask the owner for the password</p>
+          <div className="w-14 h-14 rounded-2xl bg-bg-elevated flex items-center justify-center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
           </div>
 
-          <form onSubmit={handlePasswordSubmit} className="w-full space-y-2.5">
+          <div className="text-center">
+            <p className="text-[11px] text-text-dim mb-1">AI features are locked</p>
+            <p className="text-[10px] text-text-muted">Ask the owner for the password</p>
+          </div>
+
+          <form onSubmit={handlePasswordSubmit} className="w-full space-y-3">
             <input
               type="password"
               value={passwordInput}
@@ -126,13 +128,13 @@ export function AIPanel() {
               }}
               placeholder="Enter password"
               autoFocus
-              className="w-full bg-bg-lighter border border-border rounded px-3 py-2 text-xs text-text text-center placeholder:text-text-dim/40 focus:outline-none focus:border-primary/40"
+              className="w-full bg-bg-lighter border border-border rounded-lg px-3 py-2.5 text-xs text-text text-center placeholder:text-text-muted focus:outline-none focus:border-primary/40 transition-colors"
             />
 
             <button
               type="submit"
               disabled={!passwordInput.trim() || passwordChecking}
-              className="w-full py-2 text-xs font-semibold rounded bg-primary text-bg hover:bg-primary-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full py-2.5 text-[11px] font-semibold rounded-lg bg-primary text-bg hover:bg-primary-hover transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer shadow-[0_1px_4px_rgba(238,182,4,0.2)]"
             >
               {passwordChecking ? 'Checking...' : 'Unlock'}
             </button>
@@ -317,24 +319,24 @@ export function AIPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
+      <div className="flex-1 overflow-y-auto p-5 space-y-6">
         {/* API key missing banner */}
         {!hasAnyKey && (
-          <div className="text-[11px] text-primary bg-primary/10 border border-primary/20 rounded px-3 py-2.5 leading-relaxed">
+          <div className="text-[11px] text-primary bg-primary/8 border border-primary/15 rounded-lg px-3.5 py-3 leading-relaxed">
             To use AI editing, add your API key to the <code className="bg-primary/10 px-1 rounded">.env</code> file and restart the dev server. See <code className="bg-primary/10 px-1 rounded">docs/project.md</code> for setup instructions.
           </div>
         )}
 
         {/* Per-model key missing hint */}
         {hasAnyKey && isModelAvailable && !hasKey && (
-          <div className="text-[11px] text-primary bg-primary/10 border border-primary/20 rounded px-3 py-2.5 leading-relaxed">
+          <div className="text-[11px] text-primary bg-primary/8 border border-primary/15 rounded-lg px-3.5 py-3 leading-relaxed">
             This model requires <code className="bg-primary/10 px-1 rounded">{selectedModel.apiKeyLabel}</code> in your <code className="bg-primary/10 px-1 rounded">.env</code> file. Add it and restart the dev server.
           </div>
         )}
 
         {/* Model selector */}
         <div>
-          <h3 className="text-[11px] font-semibold text-text-dim uppercase tracking-wider mb-3">
+          <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.1em] mb-3">
             Model
           </h3>
           <select
@@ -343,7 +345,7 @@ export function AIPanel() {
               const model = models.find((m) => m.id === e.target.value)
               if (model) setSelectedModel(model)
             }}
-            className="w-full bg-bg-lighter border border-border rounded px-3 py-2 text-xs text-text focus:outline-none focus:border-primary/40 cursor-pointer appearance-none"
+            className="w-full bg-bg-lighter border border-border rounded-lg px-3 py-2.5 text-xs text-text focus:outline-none focus:border-primary/40 cursor-pointer appearance-none transition-colors"
           >
             {models.map((model) => (
               <option key={model.id} value={model.id}>
@@ -352,7 +354,7 @@ export function AIPanel() {
             ))}
           </select>
           {!isModelAvailable && (
-            <p className="text-[10px] text-text-dim/50 mt-1.5">
+            <p className="text-[10px] text-text-muted mt-2">
               This model is not yet wired up. Select an available model to use AI editing.
             </p>
           )}
@@ -360,7 +362,7 @@ export function AIPanel() {
 
         {/* Prompt input */}
         <div>
-          <h3 className="text-[11px] font-semibold text-text-dim uppercase tracking-wider mb-3">
+          <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.1em] mb-3">
             Prompt
           </h3>
           <textarea
@@ -374,10 +376,10 @@ export function AIPanel() {
             placeholder="Describe how you want to edit your image... e.g. make it look like a sunset, add a moody dark atmosphere"
             disabled={!hasKey || !hasImage || !isModelAvailable || isProcessing}
             rows={5}
-            className="w-full bg-bg-lighter border border-border rounded px-3 py-2.5 text-xs text-text leading-relaxed placeholder:text-text-dim/40 focus:outline-none focus:border-primary/40 resize-none disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-bg-lighter border border-border rounded-lg px-3.5 py-3 text-xs text-text leading-relaxed placeholder:text-text-muted focus:outline-none focus:border-primary/40 resize-none disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           />
           {hasKey && hasImage && isModelAvailable && (
-            <p className="text-[10px] text-text-dim/40 mt-1.5">
+            <p className="text-[10px] text-text-muted mt-2">
               Cmd+Enter to apply
             </p>
           )}
@@ -389,15 +391,15 @@ export function AIPanel() {
             <div className="border-t border-border" />
 
             <div>
-              <h3 className="text-[11px] font-semibold text-text-dim uppercase tracking-wider mb-1">
+              <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.1em] mb-1.5">
                 Style Transfer
               </h3>
-              <p className="text-[10px] text-text-dim/40 mb-3">
+              <p className="text-[10px] text-text-muted mb-3">
                 Upload a reference image and AI will apply its visual style to your photo.
               </p>
 
               {!isGeminiModel && isModelAvailable && (
-                <p className="text-[10px] text-text-dim/50 mb-2">
+                <p className="text-[10px] text-text-muted mb-2">
                   Style Transfer is currently available with Gemini models only. Select a Gemini model to use this feature.
                 </p>
               )}
@@ -408,12 +410,12 @@ export function AIPanel() {
                   <img
                     src={styleImage}
                     alt="Style reference"
-                    className="w-full h-32 object-cover rounded border border-border"
+                    className="w-full h-32 object-cover rounded-lg border border-border"
                   />
                   <button
                     onClick={handleClearStyle}
                     disabled={isProcessing}
-                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-bg/80 border border-border text-text-dim hover:text-text hover:bg-bg flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30"
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-bg/80 border border-border text-text-dim hover:text-text hover:bg-bg flex items-center justify-center transition-all cursor-pointer disabled:opacity-30"
                     title="Remove style reference"
                   >
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -427,18 +429,18 @@ export function AIPanel() {
                   onDrop={handleStyleDrop}
                   onDragOver={handleStyleDragOver}
                   onDragLeave={handleStyleDragLeave}
-                  className={`h-24 rounded border-2 border-dashed flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-colors ${
+                  className={`h-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all ${
                     isDragOver
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/40 hover:bg-bg-lighter/50'
-                  } ${(!hasImage || !isModelAvailable || !isGeminiModel || isProcessing) ? 'opacity-40 pointer-events-none' : ''}`}
+                      ? 'border-primary/50 bg-primary/5'
+                      : 'border-border hover:border-primary/30 hover:bg-bg-lighter/50'
+                  } ${(!hasImage || !isModelAvailable || !isGeminiModel || isProcessing) ? 'opacity-30 pointer-events-none' : ''}`}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-dim/50">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted">
                     <rect x="3" y="3" width="18" height="18" rx="3" />
                     <circle cx="8.5" cy="8.5" r="1.5" />
                     <path d="M21 15l-5-5L5 21" />
                   </svg>
-                  <span className="text-[10px] text-text-dim/50 text-center px-2">
+                  <span className="text-[10px] text-text-muted text-center px-2">
                     Drop style reference here or click to upload
                   </span>
                 </div>
@@ -463,7 +465,7 @@ export function AIPanel() {
                       ? 'Upload a style reference image first'
                       : undefined
                 }
-                className="w-full mt-3 py-2.5 text-xs font-semibold rounded bg-primary text-bg hover:bg-primary-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full mt-3 py-2.5 text-[11px] font-semibold rounded-lg bg-primary text-bg hover:bg-primary-hover transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer shadow-[0_1px_4px_rgba(238,182,4,0.2)]"
               >
                 {styleLoading ? 'Processing...' : 'Transfer Style'}
               </button>
@@ -473,14 +475,14 @@ export function AIPanel() {
 
         {/* Error message */}
         {error && (
-          <div className="text-[11px] text-red-400 bg-red-400/10 border border-red-400/20 rounded px-3 py-2 leading-relaxed">
+          <div className="text-[11px] text-red-400 bg-red-400/8 border border-red-400/15 rounded-lg px-3.5 py-3 leading-relaxed">
             {error}
           </div>
         )}
 
         {/* Info note when no image */}
         {hasAnyKey && !hasImage && (
-          <div className="text-[11px] text-text-dim/50 text-center py-4">
+          <div className="text-[11px] text-text-muted text-center py-4">
             Upload an image to start using AI editing
           </div>
         )}
@@ -492,7 +494,7 @@ export function AIPanel() {
           <button
             onClick={handleApply}
             disabled={!canApply}
-            className="w-full py-2.5 text-xs font-semibold rounded bg-primary text-bg hover:bg-primary-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-2.5 text-[11px] font-semibold rounded-lg bg-primary text-bg hover:bg-primary-hover transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer shadow-[0_1px_4px_rgba(238,182,4,0.2)]"
           >
             {loading ? 'Processing...' : 'Apply'}
           </button>

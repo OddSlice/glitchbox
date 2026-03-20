@@ -40,12 +40,10 @@ export function TopBar() {
   const handleBeforePointerUp = () => {
     const elapsed = Date.now() - pressStartRef.current
     if (elapsed < 300) {
-      // Short press: toggle mode
       const newToggle = !isToggled
       setIsToggled(newToggle)
       setShowOriginal(newToggle)
     } else {
-      // Long press: release hold
       if (!isToggled) {
         setShowOriginal(false)
       }
@@ -104,24 +102,27 @@ export function TopBar() {
   }
 
   return (
-    <header className="h-12 bg-bg-light border-b border-border flex items-center justify-between px-4 shrink-0">
-      <div className="flex items-center gap-2">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-primary">
-          <rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" strokeWidth="2" />
-          <rect x="6" y="6" width="5" height="5" rx="1" fill="currentColor" />
-          <rect x="13" y="6" width="5" height="5" rx="1" fill="currentColor" opacity="0.6" />
-          <rect x="6" y="13" width="5" height="5" rx="1" fill="currentColor" opacity="0.4" />
-          <rect x="13" y="13" width="5" height="5" rx="1" fill="currentColor" opacity="0.2" />
-        </svg>
-        <span className="text-text font-semibold text-sm tracking-wide">Glitchbox</span>
+    <header className="h-12 bg-bg-light border-b border-border flex items-center justify-between px-5 shrink-0">
+      <div className="flex items-center gap-3">
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-primary">
+            <rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" strokeWidth="2" />
+            <rect x="6" y="6" width="5" height="5" rx="1" fill="currentColor" />
+            <rect x="13" y="6" width="5" height="5" rx="1" fill="currentColor" opacity="0.6" />
+            <rect x="6" y="13" width="5" height="5" rx="1" fill="currentColor" opacity="0.4" />
+            <rect x="13" y="13" width="5" height="5" rx="1" fill="currentColor" opacity="0.2" />
+          </svg>
+          <span className="text-text font-semibold text-sm tracking-wide">Glitchbox</span>
+        </div>
 
         {/* Undo / Redo */}
-        <div className="flex items-center gap-0.5 ml-2">
+        <div className="flex items-center gap-0.5 ml-1">
           <button
             onClick={() => useEditorStore.getState().undo()}
             disabled={!canUndo}
             title="Undo (Ctrl+Z)"
-            className="p-1.5 rounded text-text-dim hover:text-text hover:bg-bg-lighter transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+            className="p-1.5 rounded-lg text-text-dim hover:text-text hover:bg-bg-elevated transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 7v6h6" />
@@ -132,7 +133,7 @@ export function TopBar() {
             onClick={() => useEditorStore.getState().redo()}
             disabled={!canRedo}
             title="Redo (Ctrl+Shift+Z)"
-            className="p-1.5 rounded text-text-dim hover:text-text hover:bg-bg-lighter transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+            className="p-1.5 rounded-lg text-text-dim hover:text-text hover:bg-bg-elevated transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 7v6h-6" />
@@ -142,31 +143,31 @@ export function TopBar() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         {/* Before / After toggle */}
         <button
           onPointerDown={handleBeforePointerDown}
           onPointerUp={handleBeforePointerUp}
           onPointerLeave={handleBeforePointerLeave}
           disabled={!image}
-          className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors cursor-pointer select-none ${
+          className={`px-3.5 py-1.5 text-[11px] font-medium rounded-lg border transition-all cursor-pointer select-none ${
             showOriginal
-              ? 'border-primary bg-primary/10 text-primary'
-              : 'bg-bg-lighter text-text-dim hover:text-text border-border hover:border-primary/40'
-          } disabled:opacity-30 disabled:cursor-not-allowed`}
+              ? 'border-primary/50 bg-primary/10 text-primary shadow-[0_0_8px_rgba(238,182,4,0.1)]'
+              : 'bg-bg-lighter text-text-dim hover:text-text border-border hover:border-border-hover'
+          } disabled:opacity-25 disabled:cursor-not-allowed`}
         >
-          Before
+          Before / After
         </button>
         <button
           onClick={handleUpload}
-          className="px-3 py-1.5 text-xs font-medium rounded bg-bg-lighter text-text-dim hover:text-text border border-border hover:border-primary/40 transition-colors cursor-pointer"
+          className="px-3.5 py-1.5 text-[11px] font-semibold rounded-lg text-primary border border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-all cursor-pointer"
         >
           Upload
         </button>
         <button
           onClick={handleExport}
           disabled={!image}
-          className="px-3 py-1.5 text-xs font-medium rounded bg-primary text-bg hover:bg-primary-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          className="px-4 py-1.5 text-[11px] font-semibold rounded-lg bg-primary text-bg hover:bg-primary-hover transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer shadow-[0_1px_4px_rgba(238,182,4,0.2)]"
         >
           {exportLabel}
         </button>

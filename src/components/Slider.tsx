@@ -17,21 +17,23 @@ export function Slider({ label, value, min, max, defaultValue, onChange }: Slide
   // For sliders starting at min default, fill from left to thumb.
   const isCentered = defaultValue !== min
   let background: string
+  const trackColor = '#23211a'
+  const fillColor = '#eeb604'
   if (isCentered) {
     const lo = Math.min(defaultPct, pct)
     const hi = Math.max(defaultPct, pct)
-    background = `linear-gradient(to right, #2e2c27 0%, #2e2c27 ${lo}%, #eeb604 ${lo}%, #eeb604 ${hi}%, #2e2c27 ${hi}%, #2e2c27 100%)`
+    background = `linear-gradient(to right, ${trackColor} 0%, ${trackColor} ${lo}%, ${fillColor} ${lo}%, ${fillColor} ${hi}%, ${trackColor} ${hi}%, ${trackColor} 100%)`
   } else {
-    background = `linear-gradient(to right, #eeb604 0%, #eeb604 ${pct}%, #2e2c27 ${pct}%, #2e2c27 100%)`
+    background = `linear-gradient(to right, ${fillColor} 0%, ${fillColor} ${pct}%, ${trackColor} ${pct}%, ${trackColor} 100%)`
   }
 
   return (
     <div className="group">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-text-dim group-hover:text-text transition-colors">{label}</span>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[11px] text-text-dim group-hover:text-text transition-colors">{label}</span>
         <span
-          className={`text-xs tabular-nums min-w-8 text-right cursor-pointer ${
-            isDefault ? 'text-text-dim/50' : 'text-text'
+          className={`text-[11px] tabular-nums min-w-8 text-right cursor-pointer transition-colors ${
+            isDefault ? 'text-text-muted' : 'text-text font-medium'
           }`}
           onDoubleClick={() => onChange(defaultValue)}
           title="Double-click to reset"

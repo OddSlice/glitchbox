@@ -1,26 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  /* Background surfaces — warm-tinted darks */
-  --color-bg: #111110;
-  --color-bg-light: #1b1a18;
-  --color-bg-lighter: #272520;
-  --color-border: #2e2c27;
-  --color-border-hover: #3d3a33;
+  /* Background surfaces — warm-tinted darks, layered hierarchy */
+  --color-bg: #0e0d0b;
+  --color-bg-light: #18170f;
+  --color-bg-lighter: #23211a;
+  --color-bg-elevated: #2a2820;
+  --color-border: #302d24;
+  --color-border-hover: #443f33;
 
   /* Text */
-  --color-text: #f5f5f0;
+  --color-text: #f2f0e8;
   --color-text-dim: #7e7668;
+  --color-text-muted: #554f44;
 
   /* Primary — golden yellow */
   --color-primary: #eeb604;
   --color-primary-hover: #d9a503;
+  --color-primary-dim: #8e7438;
 
   /* Secondary — warm muted gold */
   --color-secondary: #8e7438;
+  --color-secondary-hover: #a68844;
 
   /* Tertiary — sky blue accent */
   --color-tertiary: #4ecfff;
+  --color-tertiary-hover: #3ab8e8;
 
   /* Neutral */
   --color-neutral: #7e7668;
@@ -47,8 +52,8 @@
   input[type="range"].slider {
     -webkit-appearance: none;
     appearance: none;
-    height: 4px;
-    border-radius: 2px;
+    height: 3px;
+    border-radius: 4px;
     outline: none;
     cursor: pointer;
   }
@@ -56,25 +61,27 @@
   input[type="range"].slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    background: #f5f5f0;
-    border: 2px solid #eeb604;
+    background: var(--color-bg-elevated);
+    border: 2.5px solid var(--color-primary);
     cursor: pointer;
-    transition: transform 0.1s;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 0 0 3px rgba(238, 182, 4, 0.08);
   }
 
   input[type="range"].slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
+    transform: scale(1.15);
+    box-shadow: 0 0 0 5px rgba(238, 182, 4, 0.15);
   }
 
   input[type="range"].slider::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    background: #f5f5f0;
-    border: 2px solid #eeb604;
+    background: var(--color-bg-elevated);
+    border: 2.5px solid var(--color-primary);
     cursor: pointer;
   }
 
@@ -86,10 +93,18 @@
     background: transparent;
   }
   aside ::-webkit-scrollbar-thumb {
-    background: #2e2c27;
-    border-radius: 2px;
+    background: var(--color-border);
+    border-radius: 4px;
   }
   aside ::-webkit-scrollbar-thumb:hover {
-    background: #3d3a33;
+    background: var(--color-border-hover);
+  }
+
+  /* Select dropdown arrow */
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%237e7668' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px !important;
   }
 }
