@@ -1,14 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0f0f0f;
-  --color-bg-light: #1a1a1a;
-  --color-bg-lighter: #252525;
-  --color-border: #2a2a2a;
+  /* Background surfaces — warm-tinted darks */
+  --color-bg: #111110;
+  --color-bg-light: #1b1a18;
+  --color-bg-lighter: #272520;
+  --color-border: #2e2c27;
+  --color-border-hover: #3d3a33;
+
+  /* Text */
   --color-text: #f5f5f0;
-  --color-text-dim: #888888;
-  --color-amber: #f5a623;
-  --color-amber-hover: #e6971a;
+  --color-text-dim: #7e7668;
+
+  /* Primary — golden yellow */
+  --color-primary: #eeb604;
+  --color-primary-hover: #d9a503;
+
+  /* Secondary — warm muted gold */
+  --color-secondary: #8e7438;
+
+  /* Tertiary — sky blue accent */
+  --color-tertiary: #4ecfff;
+
+  /* Neutral */
+  --color-neutral: #7e7668;
+
+  /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -43,7 +60,7 @@
     height: 14px;
     border-radius: 50%;
     background: #f5f5f0;
-    border: 2px solid #f5a623;
+    border: 2px solid #eeb604;
     cursor: pointer;
     transition: transform 0.1s;
   }
@@ -57,7 +74,7 @@
     height: 14px;
     border-radius: 50%;
     background: #f5f5f0;
-    border: 2px solid #f5a623;
+    border: 2px solid #eeb604;
     cursor: pointer;
   }
 
@@ -69,10 +86,10 @@
     background: transparent;
   }
   aside ::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
+    background: #2e2c27;
     border-radius: 2px;
   }
   aside ::-webkit-scrollbar-thumb:hover {
-    background: #3a3a3a;
+    background: #3d3a33;
   }
 }

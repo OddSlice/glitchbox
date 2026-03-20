@@ -126,13 +126,13 @@ export function AIPanel() {
               }}
               placeholder="Enter password"
               autoFocus
-              className="w-full bg-bg-lighter border border-border rounded px-3 py-2 text-xs text-text text-center placeholder:text-text-dim/40 focus:outline-none focus:border-amber/40"
+              className="w-full bg-bg-lighter border border-border rounded px-3 py-2 text-xs text-text text-center placeholder:text-text-dim/40 focus:outline-none focus:border-primary/40"
             />
 
             <button
               type="submit"
               disabled={!passwordInput.trim() || passwordChecking}
-              className="w-full py-2 text-xs font-semibold rounded bg-amber text-bg hover:bg-amber-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full py-2 text-xs font-semibold rounded bg-primary text-bg hover:bg-primary-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
             >
               {passwordChecking ? 'Checking...' : 'Unlock'}
             </button>
@@ -320,15 +320,15 @@ export function AIPanel() {
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         {/* API key missing banner */}
         {!hasAnyKey && (
-          <div className="text-[11px] text-amber bg-amber/10 border border-amber/20 rounded px-3 py-2.5 leading-relaxed">
-            To use AI editing, add your API key to the <code className="bg-amber/10 px-1 rounded">.env</code> file and restart the dev server. See <code className="bg-amber/10 px-1 rounded">docs/project.md</code> for setup instructions.
+          <div className="text-[11px] text-primary bg-primary/10 border border-primary/20 rounded px-3 py-2.5 leading-relaxed">
+            To use AI editing, add your API key to the <code className="bg-primary/10 px-1 rounded">.env</code> file and restart the dev server. See <code className="bg-primary/10 px-1 rounded">docs/project.md</code> for setup instructions.
           </div>
         )}
 
         {/* Per-model key missing hint */}
         {hasAnyKey && isModelAvailable && !hasKey && (
-          <div className="text-[11px] text-amber bg-amber/10 border border-amber/20 rounded px-3 py-2.5 leading-relaxed">
-            This model requires <code className="bg-amber/10 px-1 rounded">{selectedModel.apiKeyLabel}</code> in your <code className="bg-amber/10 px-1 rounded">.env</code> file. Add it and restart the dev server.
+          <div className="text-[11px] text-primary bg-primary/10 border border-primary/20 rounded px-3 py-2.5 leading-relaxed">
+            This model requires <code className="bg-primary/10 px-1 rounded">{selectedModel.apiKeyLabel}</code> in your <code className="bg-primary/10 px-1 rounded">.env</code> file. Add it and restart the dev server.
           </div>
         )}
 
@@ -343,7 +343,7 @@ export function AIPanel() {
               const model = models.find((m) => m.id === e.target.value)
               if (model) setSelectedModel(model)
             }}
-            className="w-full bg-bg-lighter border border-border rounded px-3 py-2 text-xs text-text focus:outline-none focus:border-amber/40 cursor-pointer appearance-none"
+            className="w-full bg-bg-lighter border border-border rounded px-3 py-2 text-xs text-text focus:outline-none focus:border-primary/40 cursor-pointer appearance-none"
           >
             {models.map((model) => (
               <option key={model.id} value={model.id}>
@@ -374,7 +374,7 @@ export function AIPanel() {
             placeholder="Describe how you want to edit your image... e.g. make it look like a sunset, add a moody dark atmosphere"
             disabled={!hasKey || !hasImage || !isModelAvailable || isProcessing}
             rows={5}
-            className="w-full bg-bg-lighter border border-border rounded px-3 py-2.5 text-xs text-text leading-relaxed placeholder:text-text-dim/40 focus:outline-none focus:border-amber/40 resize-none disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-bg-lighter border border-border rounded px-3 py-2.5 text-xs text-text leading-relaxed placeholder:text-text-dim/40 focus:outline-none focus:border-primary/40 resize-none disabled:opacity-40 disabled:cursor-not-allowed"
           />
           {hasKey && hasImage && isModelAvailable && (
             <p className="text-[10px] text-text-dim/40 mt-1.5">
@@ -429,8 +429,8 @@ export function AIPanel() {
                   onDragLeave={handleStyleDragLeave}
                   className={`h-24 rounded border-2 border-dashed flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-colors ${
                     isDragOver
-                      ? 'border-amber bg-amber/5'
-                      : 'border-border hover:border-amber/40 hover:bg-bg-lighter/50'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/40 hover:bg-bg-lighter/50'
                   } ${(!hasImage || !isModelAvailable || !isGeminiModel || isProcessing) ? 'opacity-40 pointer-events-none' : ''}`}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-dim/50">
@@ -463,7 +463,7 @@ export function AIPanel() {
                       ? 'Upload a style reference image first'
                       : undefined
                 }
-                className="w-full mt-3 py-2.5 text-xs font-semibold rounded bg-amber text-bg hover:bg-amber-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full mt-3 py-2.5 text-xs font-semibold rounded bg-primary text-bg hover:bg-primary-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 {styleLoading ? 'Processing...' : 'Transfer Style'}
               </button>
@@ -492,7 +492,7 @@ export function AIPanel() {
           <button
             onClick={handleApply}
             disabled={!canApply}
-            className="w-full py-2.5 text-xs font-semibold rounded bg-amber text-bg hover:bg-amber-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-2.5 text-xs font-semibold rounded bg-primary text-bg hover:bg-primary-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? 'Processing...' : 'Apply'}
           </button>

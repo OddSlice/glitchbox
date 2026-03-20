@@ -12,7 +12,7 @@ export function ColorPicker({ label, value, onChange }: ColorPickerProps) {
         <span className="text-[10px] text-text-dim/50 tabular-nums uppercase">{value}</span>
         <label className="relative cursor-pointer">
           <div
-            className="w-6 h-6 rounded border border-border hover:border-amber/40 transition-colors"
+            className="w-6 h-6 rounded border border-border hover:border-primary/40 transition-colors"
             style={{ backgroundColor: value }}
           />
           <input

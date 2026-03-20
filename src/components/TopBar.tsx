@@ -106,7 +106,7 @@ export function TopBar() {
   return (
     <header className="h-12 bg-bg-light border-b border-border flex items-center justify-between px-4 shrink-0">
       <div className="flex items-center gap-2">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-amber">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-primary">
           <rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" strokeWidth="2" />
           <rect x="6" y="6" width="5" height="5" rx="1" fill="currentColor" />
           <rect x="13" y="6" width="5" height="5" rx="1" fill="currentColor" opacity="0.6" />
@@ -151,22 +151,22 @@ export function TopBar() {
           disabled={!image}
           className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors cursor-pointer select-none ${
             showOriginal
-              ? 'border-amber bg-amber/10 text-amber'
-              : 'bg-bg-lighter text-text-dim hover:text-text border-border hover:border-amber/40'
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'bg-bg-lighter text-text-dim hover:text-text border-border hover:border-primary/40'
           } disabled:opacity-30 disabled:cursor-not-allowed`}
         >
           Before
         </button>
         <button
           onClick={handleUpload}
-          className="px-3 py-1.5 text-xs font-medium rounded bg-bg-lighter text-text-dim hover:text-text border border-border hover:border-amber/40 transition-colors cursor-pointer"
+          className="px-3 py-1.5 text-xs font-medium rounded bg-bg-lighter text-text-dim hover:text-text border border-border hover:border-primary/40 transition-colors cursor-pointer"
         >
           Upload
         </button>
         <button
           onClick={handleExport}
           disabled={!image}
-          className="px-3 py-1.5 text-xs font-medium rounded bg-amber text-bg hover:bg-amber-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          className="px-3 py-1.5 text-xs font-medium rounded bg-primary text-bg hover:bg-primary-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
         >
           {exportLabel}
         </button>

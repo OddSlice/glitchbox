@@ -36,7 +36,7 @@ export function AdjustPanel() {
       <div className="shrink-0 p-4 border-t border-border">
         <button
           onClick={resetAll}
-          className="w-full py-2 text-xs font-medium rounded border border-border text-text-dim hover:text-text hover:border-amber/40 transition-colors cursor-pointer"
+          className="w-full py-2 text-xs font-medium rounded border border-border text-text-dim hover:text-text hover:border-primary/40 transition-colors cursor-pointer"
         >
           Reset All
         </button>

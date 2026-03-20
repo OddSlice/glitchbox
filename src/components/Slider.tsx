@@ -20,9 +20,9 @@ export function Slider({ label, value, min, max, defaultValue, onChange }: Slide
   if (isCentered) {
     const lo = Math.min(defaultPct, pct)
     const hi = Math.max(defaultPct, pct)
-    background = `linear-gradient(to right, #2a2a2a 0%, #2a2a2a ${lo}%, #f5a623 ${lo}%, #f5a623 ${hi}%, #2a2a2a ${hi}%, #2a2a2a 100%)`
+    background = `linear-gradient(to right, #2e2c27 0%, #2e2c27 ${lo}%, #eeb604 ${lo}%, #eeb604 ${hi}%, #2e2c27 ${hi}%, #2e2c27 100%)`
   } else {
-    background = `linear-gradient(to right, #f5a623 0%, #f5a623 ${pct}%, #2a2a2a ${pct}%, #2a2a2a 100%)`
+    background = `linear-gradient(to right, #eeb604 0%, #eeb604 ${pct}%, #2e2c27 ${pct}%, #2e2c27 100%)`
   }
 
   return (

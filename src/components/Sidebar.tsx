@@ -24,7 +24,7 @@ export function Sidebar() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 py-2.5 text-xs font-medium transition-colors cursor-pointer ${
               activeTab === tab.id
-                ? 'text-amber border-b-2 border-amber'
+                ? 'text-primary border-b-2 border-primary'
                 : 'text-text-dim hover:text-text'
             }`}
           >

@@ -16,8 +16,8 @@ export function PickerControl({ label, value, options, onChange }: PickerControl
             onClick={() => onChange(opt.value)}
             className={`flex-1 py-1 px-1.5 text-[10px] font-medium rounded transition-colors cursor-pointer ${
               value === opt.value
-                ? 'bg-amber/20 text-amber border border-amber/40'
-                : 'bg-bg-lighter text-text-dim border border-border hover:text-text hover:border-amber/20'
+                ? 'bg-primary/20 text-primary border border-primary/40'
+                : 'bg-bg-lighter text-text-dim border border-border hover:text-text hover:border-primary/20'
             }`}
           >
             {opt.label}

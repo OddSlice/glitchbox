@@ -149,9 +149,9 @@ function DropZone() {
       onClick={handleClick}
       onDrop={handleDrop}
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
-      className="border-2 border-dashed border-border hover:border-amber/40 rounded-lg w-[480px] h-[320px] flex flex-col items-center justify-center cursor-pointer transition-colors group"
+      className="border-2 border-dashed border-border hover:border-primary/40 rounded-lg w-[480px] h-[320px] flex flex-col items-center justify-center cursor-pointer transition-colors group"
     >
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-text-dim/30 group-hover:text-amber/50 transition-colors mb-4">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-text-dim/30 group-hover:text-primary/50 transition-colors mb-4">
         <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
       <p className="text-text-dim text-sm">Drop your image here or click Upload</p>
